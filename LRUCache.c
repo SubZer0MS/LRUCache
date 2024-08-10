@@ -412,7 +412,8 @@ void LRUDisplayCache(PLRUCACHE cache)
     }
 }
 
-// cahe definition ends here
+
+// LRU Cache definition ends here
 
 void generateRandomString(PCHAR str, size_t size)
 {
