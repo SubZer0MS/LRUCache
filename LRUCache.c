@@ -202,6 +202,11 @@ int LRUCacheRemoveTail(PLRUCACHE cache)
 {
     PNODE node = cache->tail;
 
+    if (!node)
+    {
+        return -1;
+    }
+
     if (node == cache->head)
     {
         cache->head = NULL;
@@ -324,7 +329,6 @@ int LRUCachePut(PLRUCACHE cache, PCHAR key, PVOID value, size_t size)
     return 0;
 }
 
-
 int LRUCacheRemove(PLRUCACHE cache, PCHAR key)
 {
     PNODE node = LRUCacheGet(cache, key);
@@ -408,6 +412,83 @@ void LRUDisplayCache(PLRUCACHE cache)
     }
 }
 
+// cahe definition ends here
+
+void generateRandomString(PCHAR str, size_t size)
+{
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    for (size_t i = 0; i < size - 1; i++)
+    {
+        str[i] = charset[rand() % (sizeof(charset) - 1)];
+    }
+
+    str[size - 1] = '\0';
+}
+
+void testLRUCache()
+{
+    srand((UINT)time(NULL));
+
+    PLRUCACHE cache = LRUCacheCreate(500);
+    if (!cache) {
+        printf("Failed to create LRU cache.\n");
+        return;
+    }
+
+    for (int i = 0; i < 1111; ++i) {
+        char key[MAX_KEY_LENGTH];
+        char value[MAX_VALUE_LENGTH];
+
+        generateRandomString(key, sizeof(key));
+        generateRandomString(value, sizeof(value));
+
+        if (LRUCachePut(cache, key, strdup(value), strlen(value) + 1) == -1)
+        {
+            printf("Failed to put key: %s into cache.\n", key);
+        }
+    }
+
+    for (int i = 0; i < 10; ++i)
+    {
+        char key[MAX_KEY_LENGTH];
+        generateRandomString(key, sizeof(key));
+
+        PVOID value = LRUCacheGet(cache, key);
+        if (value)
+        {
+            printf("Key '%s' retrieved from cache.\n", key);
+        }
+        else
+        {
+            printf("Key '%s' not found in cache.\n", key);
+        }
+    }
+
+    printf("\nCurrent cache contents:\n");
+    LRUDisplayCache(cache);
+
+    for (int i = 0; i < 10; ++i)
+    {
+        char key[MAX_KEY_LENGTH];
+        generateRandomString(key, sizeof(key));
+
+        if (LRUCacheRemove(cache, key) == 0)
+        {
+            printf("Key '%s' removed from cache.\n", key);
+        }
+        else
+        {
+            printf("Failed to remove key '%s' from cache.\n", key);
+        }
+    }
+
+    printf("\nCache contents after removals:\n");
+    LRUDisplayCache(cache);
+
+    LRUCacheFree(cache);
+    printf("LRU cache freed.\n");
+}
+
 int main()
 {
     UINT capacity = 0;
@@ -440,6 +521,8 @@ int main()
         printf("2. Add key-value pair to LRU Cache\n");
         printf("3. Get value by key from LRU Cache\n");
         printf("4. Test adding some custom data structure to LRU Cache\n");
+        printf("5. Remove by key from LRU Cache\n");
+        printf("6. Test LRU Cache\n");
         printf("0. Exit\n");
         printf("Enter your choice: ");
 
@@ -589,6 +672,41 @@ int main()
 
                     break;
                 }
+
+            case 5:
+                {
+                    char key[MAX_KEY_LENGTH + 1] = {0};
+
+                    printf("Enter key to remove: ");
+
+                    if (fgets(key, sizeof(key), stdin) == NULL)
+                    {
+                        printf("Failed to read input.\n");
+
+                        continue;
+                    }
+
+                    key[strcspn(key, "\n")] = 0;
+
+                    if (LRUCacheRemove(cache, key) == 0)
+                    {
+                        printf("Key '%s' removed from LRU Cache.\n", key);
+                    }
+                    else
+                    {
+                        printf("Key '%s' not found in LRU Cache.\n", key);
+                    }
+
+                    LRUDisplayCache(cache);
+
+                    break;
+                }
+
+            case 6:
+
+                testLRUCache();
+
+                break;
 
             case 0:
 
